@@ -1,0 +1,17 @@
+<<
+   /EndPage
+   {
+     2 eq { pop false }
+     {
+         gsave
+         translate
+         /{{ font }} findfont {{ size }} scalefont setfont
+         newpath
+         {{ transparency }} setgray {{ position }} moveto {{ rotate }} rotate
+         ({{ text }}) false  charpath
+         0 setlinewidth stroke
+         grestore
+         true
+     } ifelse
+   } bind
+>>setpagedevice
