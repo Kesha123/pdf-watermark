@@ -1,5 +1,7 @@
 # PDF Watermark
 
+**PDF Watermark** provides functionality for applying watermarks to PDF files. This library exclusively utilizes `Python` and `Ghostscript`.
+
 ## Install
 ```
 pip install git+https://github.com/Kesha123/pdf-watermark.git@v<latest-release-tag-number>
