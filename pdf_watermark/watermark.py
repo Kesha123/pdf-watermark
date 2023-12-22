@@ -23,10 +23,14 @@ class File:
     def __validate_output_file(self, output_file: str):
         return output_file.split('.')[-1] == "pdf"
 
+    def __min_dimension(self, info, text_length):
+        return min( info[0]/text_length, info[1]/text_length )
+
     def __character_size(self, text_length, info):
-        character_size_dimensions = ( info[0]/text_length, info[1]/text_length )
-        min_dimension = min(character_size_dimensions)
-        return math.sqrt(2 * math.pow( min_dimension, 2 ))
+        return math.sqrt(2 * math.pow( self.__min_dimension(info, text_length), 2 ))
+
+    def __text_box_width(self, text_length, info, rotate):
+        return self.__min_dimension(info, text_length) * (text_length * math.cos(rotate) + math.sin(rotate))
 
     def watermarking(self, transparency: float = 0.5, text: str = "TOP SECRET", font: str = 'Helvetica-Bold', output_file: str = '') -> None:
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -47,7 +51,7 @@ class File:
 
             rotate = math.atan(info[1]/info[0])
 
-            starting_X = (character_size + character_size * math.cos(rotate)) / 2
+            starting_X = self.__min_dimension(info, text_length) * math.sin(rotate) + (info[0] - self.__text_box_width(text_length, info, rotate)) * 0.5
             starting_Y = (min(info) - character_size * math.sin(rotate)) / 2
 
             position = f"{starting_X} {starting_Y}"
