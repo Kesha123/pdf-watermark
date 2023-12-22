@@ -39,10 +39,12 @@ class File:
         return self.__min_dimension(info, text_length) * (text_length * math.cos(rotate) + math.sin(rotate))
 
     def __text_box_height(self, text_length, info, rotate):
-        ''''''
+        '''
+        Same as __text_box_width (assuming character box is a square, which almost true)
+        '''
         return self.__min_dimension(info, text_length) * (text_length * math.cos(rotate) + math.sin(rotate))
 
-    def watermarking(self, transparency: float = 0.5, text: str = "TOP SECRET TOP SECRET", font: str = 'Helvetica-Bold', output_file: str = '') -> None:
+    def watermarking(self, transparency: float = 0.5, text: str = "TOP SECRET", font: str = 'Helvetica-Bold', output_file: str = '') -> None:
         current_dir = os.path.dirname(os.path.abspath(__file__))
         templates_dir = os.path.join(current_dir, 'templates')
         file_loader = FileSystemLoader(templates_dir)
