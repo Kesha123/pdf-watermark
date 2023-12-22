@@ -2,6 +2,8 @@ import os
 import math
 from jinja2 import Environment, FileSystemLoader
 
+PDF_CONSTANT = 7.2
+
 class File:
 
     def __init__(self, file_path: str = None):
@@ -18,7 +20,15 @@ class File:
         resize_command = f"gs -q -o r_{self.__file}  -sDEVICE=pdfwrite  -sPAPERSIZE=a4  -dPDFFitPage  -dCompatibilityLevel=1.4  {self.__file}"
         os.system(resize_command)
 
-    def watermarking(self, transparency: float = 0.5, text: str = "TOP SECRET", font: str = 'Helvetica-Bold') -> None:
+    def __validate_output_file(self, output_file: str):
+        return output_file.split('.')[-1] == "pdf"
+
+    def __character_size(self, text_length, info):
+        character_size_dimensions = ( info[0]/text_length, info[1]/text_length )
+        min_dimension = min(character_size_dimensions)
+        return math.sqrt(2 * math.pow( min_dimension, 2 ))
+
+    def watermarking(self, transparency: float = 0.5, text: str = "TOP SECRET", font: str = 'Helvetica-Bold', output_file: str = '') -> None:
         current_dir = os.path.dirname(os.path.abspath(__file__))
         templates_dir = os.path.join(current_dir, 'templates')
         file_loader = FileSystemLoader(templates_dir)
@@ -27,18 +37,27 @@ class File:
 
         pages_info = self.__get_info()
 
-        output_command = f"gs -q -dNOPAUSE -sDEVICE=pdfwrite -dAutoRotatePages=/None -sOUTPUTFILE=wm_{self.__file} -dBATCH "
+        output_command = f"gs -q -dNOPAUSE -sDEVICE=pdfwrite -dAutoRotatePages=/None -sOUTPUTFILE={ output_file if self.__validate_output_file(output_file) else 'wm_' + self.__file} -dBATCH "
 
         for index,info in enumerate(pages_info):
             wm = f"gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -dAutoRotatePages=/None -dFirstPage={index+1} -dLastPage={index+1} -sOutputFile={index}_{self.__file} wm.ps {self.__file}"
 
-            position = f"{info[0]//7.2} {info[1]//7.2}"
-            rotate = math.degrees(math.atan(info[1]/info[0]))
-            size = math.sqrt(info[0]**2 + info[1]**2)//7.2
+            text_length = len(text)
+            character_size = self.__character_size(text_length, info)
 
-            print(info, size, rotate, position)
+            rotate = math.atan(info[1]/info[0])
 
-            watermark = template.render(transparency=transparency, text=text, rotate=rotate, size=size, font=font, position=position)
+            starting_X = (character_size + character_size * math.cos(rotate)) / 2
+            starting_Y = (min(info) - character_size * math.sin(rotate)) / 2
+
+            position = f"{starting_X} {starting_Y}"
+
+            size = character_size
+            rotate_degrees = math.degrees(rotate)
+
+            print(info, size, rotate_degrees, position)
+
+            watermark = template.render(transparency=transparency, text=text, rotate=rotate_degrees, size=size, font=font, position=position)
 
             output_command += f"{index}_{self.__file} "
 
