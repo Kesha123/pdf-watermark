@@ -1,5 +1,7 @@
 import os
 import math
+import uuid
+import shutil
 from jinja2 import Environment, FileSystemLoader
 
 PDF_CONSTANT = 7.2
@@ -8,7 +10,7 @@ class File:
 
     def __init__(self, file_path: str = None):
         self.__file = file_path
-        self.wm_command = f"gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -dAutoRotatePages=/None -sOutputFile=wm_{self.__file} wm.ps {self.__file}"
+        # self.wm_command = f"gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -dAutoRotatePages=/None -sOutputFile=wm_{self.__file} wm.ps {self.__file}"
 
     def __get_info(self):
         pages_info = f"gs -q -dNODISPLAY -dQUIET -dNOSAFER -sFileName={self.__file} -c \"FileName (r) file runpdfbegin 1 1 pdfpagecount {{pdfgetpage /MediaBox get {{=print ( ) print}} forall (\\n) print}} for quit\""
@@ -44,14 +46,19 @@ class File:
         '''
         return self.__min_dimension(info, text_length) * (text_length * math.cos(rotate) + math.sin(rotate))
 
-    def watermarking(self, transparency: float = 0.5, text: str = "TOP SECRET", font: str = 'Helvetica-Bold', output_file: str = '') -> None:
+    def __get_template(self, template_name: str = "./watermark_template.ps"):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         templates_dir = os.path.join(current_dir, 'templates')
         file_loader = FileSystemLoader(templates_dir)
         env = Environment(loader=file_loader)
-        template = env.get_template("./watermark_template.ps")
+        return env.get_template(template_name)
 
+    def watermarking(self, transparency: float = 0.5, text: str = "TOP SECRET", font: str = 'Helvetica-Bold', output_file: str = '') -> None:
+        template = self.__get_template()
         pages_info = self.__get_info()
+        lock_dir = f'.lock.{uuid.uuid4()}'
+
+        os.mkdir(lock_dir)
 
         output_command = f"gs -q -dNOPAUSE -sDEVICE=pdfwrite -dAutoRotatePages=/None -sOUTPUTFILE={ output_file if self.__validate_output_file(output_file) else 'wm_' + self.__file} -dBATCH "
 
@@ -61,7 +68,7 @@ class File:
                 rotate = alpha;
                 starting_X = k + c;
             '''
-            wm = f"gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -dAutoRotatePages=/None -dFirstPage={index+1} -dLastPage={index+1} -sOutputFile={index}_{self.__file} wm.ps {self.__file}"
+            wm = f"gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -dAutoRotatePages=/None -dFirstPage={index+1} -dLastPage={index+1} -sOutputFile={lock_dir}/{index}_{self.__file} wm.ps {self.__file}"
 
             text_length = len(text)
             size = self.__character_size(text_length, info)
@@ -75,11 +82,9 @@ class File:
 
             rotate_degrees = math.degrees(rotate)
 
-            print(info, size, rotate_degrees, position)
-
             watermark = template.render(transparency=transparency, text=text, rotate=rotate_degrees, size=size, font=font, position=position)
 
-            output_command += f"{index}_{self.__file} "
+            output_command += f"{lock_dir}/{index}_{self.__file} "
 
             with open("wm.ps",'w') as file:
                 file.write(watermark)
@@ -90,5 +95,4 @@ class File:
 
         os.system(output_command)
 
-        for i in range(0,len(pages_info)):
-            os.remove(f"{i}_{self.__file}")
+        shutil.rmtree(lock_dir)
