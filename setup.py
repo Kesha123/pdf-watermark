@@ -13,7 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url='https://github.com/Kesha123/pdf-watermark',
     license='MIT',
-    packages=['pdf_watermark'],
+    packages=['pdf_watermark', 'pdf_watermark.constants', 'pdf_watermark.templates', 'pdf_watermark.scripts'],
     install_requires=[
         "Jinja2==3.1.2"
     ]
