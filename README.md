@@ -42,22 +42,6 @@ gs --version
 pip install git+https://github.com/Kesha123/pdf-watermark.git@v<latest-release-tag-number>
 ```
 
-## Classes and methods
-
-### File
-| Argument | Type | Default value | Description |
-|---|---|---|---|
-| **file_path** | str | None | Path to pdf file you want to apply watermark for |
-
-`watermarking`
-| Argument | Type | Default value | Description |
-|---|---|---|---|
-| **transparency** | float | 0.5 | Watermark transparency level |
-| **text** | str | 'TOP SECRET' | Watermark text |
-| **font** | str | Helvetica-Bold | Watermark font |
-| **output_file** | str | None | Output file name |
-
-
 ## Use
 
 #### Sync
