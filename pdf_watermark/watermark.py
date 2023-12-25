@@ -10,7 +10,6 @@ class File:
 
     def __init__(self, file_path: str = None):
         self.__file = file_path
-        # self.wm_command = f"gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -dAutoRotatePages=/None -sOutputFile=wm_{self.__file} wm.ps {self.__file}"
 
     def __get_info(self):
         pages_info = f"gs -q -dNODISPLAY -dQUIET -dNOSAFER -sFileName={self.__file} -c \"FileName (r) file runpdfbegin 1 1 pdfpagecount {{pdfgetpage /MediaBox get {{=print ( ) print}} forall (\\n) print}} for quit\""
@@ -76,7 +75,7 @@ class File:
             rotate = math.atan(info[1]/info[0])
 
             starting_X = self.__min_dimension(info, text_length) * math.sin(rotate) + (info[0] - self.__text_box_width(text_length, info, rotate)) * 0.5
-            starting_Y = (info[1] - self.__text_box_height(text_length,info, rotate) ) * 0.5
+            starting_Y = (info[1] - self.__text_box_height(text_length, info, rotate) ) * 0.5
 
             position = f"{starting_X} {starting_Y}"
 
