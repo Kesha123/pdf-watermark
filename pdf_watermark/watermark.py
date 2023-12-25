@@ -9,7 +9,7 @@ from pdf_watermark.constants.page import PageSize, PageInfo
 
 class File:
 
-    def __init__(self, file_path: str = None):
+    def __init__(self, file_path: str = None) -> None:
         self.__file = file_path
 
     def __get_info(self) -> PageInfo:
@@ -18,23 +18,23 @@ class File:
         out = exec.read()
         return [ PageInfo(XDimension=float(page.split(' ')[2]), YDimension=float(page.split(' ')[3])) for page in out.rstrip().split('\n') ]
 
-    def __resize(self, file_name: str, page_size: PageSize):
+    def __resize(self, file_name: str, page_size: PageSize) -> None:
         command = resize_file(file_name, page_size)
         os.system(command)
 
-    def __validate_output_file(self, output_file: str):
+    def __validate_output_file(self, output_file: str) -> bool:
         return output_file.split('.')[-1] == "pdf"
 
-    def __min_dimension(self, info: PageInfo, text_length: int):
+    def __min_dimension(self, info: PageInfo, text_length: int) -> float:
         return min( info.XDimension/text_length, info.YDimension/text_length )
 
-    def __character_size(self, text_length: int, info: PageInfo):
+    def __character_size(self, text_length: int, info: PageInfo) -> float:
         return math.sqrt(2 * math.pow( self.__min_dimension(info, text_length), 2 ))
 
-    def __text_box_width(self, text_length: int, info: PageInfo, rotate: float):
+    def __text_box_width(self, text_length: int, info: PageInfo, rotate: float) -> float:
         return self.__min_dimension(info, text_length) * (text_length * math.cos(rotate) + math.sin(rotate))
 
-    def __text_box_height(self, text_length: int, info: PageInfo, rotate: float):
+    def __text_box_height(self, text_length: int, info: PageInfo, rotate: float) -> float:
         return self.__min_dimension(info, text_length) * (text_length * math.cos(rotate) + math.sin(rotate))
 
     def __get_template(self, template_name: str = "./watermark_template.ps"):
