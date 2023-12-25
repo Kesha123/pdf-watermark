@@ -32,3 +32,8 @@ pdf_file_path = "/path/to/file.pdf"
 file = File(file_path=pdf_file_path)
 file.watermarking()
 ```
+
+## Calculations
+
+### X Axis Positioning
+ ![Main1](/images/x-axis-calcs.jpg)
