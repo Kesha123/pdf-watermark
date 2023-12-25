@@ -2,7 +2,7 @@ import os
 import math
 import uuid
 import shutil
-from pdf_watermark.scripts.scripts import *
+import pdf_watermark.scripts.scripts as scripts
 from jinja2 import Environment, FileSystemLoader
 from pdf_watermark.constants.page import PageSize, PageInfo
 
@@ -13,13 +13,13 @@ class File:
         self.__file = file_path
 
     def __get_info(self) -> PageInfo:
-        pages_info = get_file_information(self.__file)
+        pages_info = scripts.get_file_information(self.__file)
         exec = os.popen(pages_info)
         out = exec.read()
         return [ PageInfo(XDimension=float(page.split(' ')[2]), YDimension=float(page.split(' ')[3])) for page in out.rstrip().split('\n') ]
 
     def __resize(self, file_name: str, page_size: PageSize) -> None:
-        command = resize_file(file_name, page_size)
+        command = scripts.resize_file(file_name, page_size)
         os.system(command)
 
     def __validate_output_file(self, output_file: str) -> bool:
@@ -51,12 +51,12 @@ class File:
 
         os.mkdir(lock_dir)
 
-        output_command = concat_files( output_file if self.__validate_output_file(output_file) else 'wm_' + self.__file )
+        output_command = scripts.concat_files( output_file if self.__validate_output_file(output_file) else 'wm_' + self.__file )
 
         for index, info in enumerate(pages_info):
             gs_watermark_script = "wm.ps"
 
-            wm = apply_waterwark(
+            wm = scripts.apply_waterwark(
                 first_page = index+1,
                 last_page = index+1,
                 output_file = f"{lock_dir}/{index}_{self.__file}",
