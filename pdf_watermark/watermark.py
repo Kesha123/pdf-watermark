@@ -86,13 +86,23 @@ class File:
     #     os.system(output_command)
     #     shutil.rmtree(lock_dir)
 
-    async def watermarking_async(self, transparency: float = 0.5, text: str = "TOP SECRET", font: str = 'Helvetica-Bold', output_file: str = ''):
+    def watermarking(self, transparency: float = 0.5, text: str = "TOP SECRET", font: str = 'Helvetica-Bold', output_file: str = '') -> None:
+        pages = [ Page(number=i+1, page_info=info, file_path=self.__file) for i, info in enumerate(self.__get_info()) ]
+        lock_dir = f'.lock.{uuid.uuid4()}'
+        os.mkdir(lock_dir)
+        command = f"{scripts.concat_files( output_file if self.__validate_output_file(output_file) else 'wm_' + self.__file )} {' '.join([ f'{lock_dir}/{page.get_page_number()}.pdf' for page in pages ])} "
+        for p in pages:
+            p.apply_watermark(lock_dir, self.__get_template(), transparency, text, font)
+        os.system(command)
+        shutil.rmtree(lock_dir)
+
+    async def watermarking_async(self, transparency: float = 0.5, text: str = "TOP SECRET", font: str = 'Helvetica-Bold', output_file: str = '') -> None:
         pages = [ Page(number=i+1, page_info=info, file_path=self.__file) for i, info in enumerate(self.__get_info()) ]
         lock_dir = f'.lock.{uuid.uuid4()}'
         os.mkdir(lock_dir)
         command = f"{scripts.concat_files( output_file if self.__validate_output_file(output_file) else 'wm_' + self.__file )} {' '.join([ f'{lock_dir}/{page.get_page_number()}.pdf' for page in pages ])} "
 
-        watermarking_tasks = [page.apply_watermark(lock_dir, self.__get_template(), transparency, text, font) for page in pages]
+        watermarking_tasks = [page.apply_watermark_async(lock_dir, self.__get_template(), transparency, text, font) for page in pages]
         await asyncio.gather(*watermarking_tasks)
 
         os.system(command)
@@ -122,7 +132,35 @@ class Page:
     def __text_box_height(self, text_length: int, info: PageInfo, rotate: float) -> float:
         return self.__min_dimension(info, text_length) * (text_length * math.cos(rotate) + math.sin(rotate))
 
-    async def apply_watermark(self, lock_dir: str, template: Template, transparency: float = 0.5, text: str = "TOP SECRET", font: str = 'Helvetica-Bold') -> None:
+    async def apply_watermark_async(self, lock_dir: str, template: Template, transparency: float = 0.5, text: str = "TOP SECRET", font: str = 'Helvetica-Bold') -> None:
+        gs_watermark_script = "wm.ps"
+
+        wm = scripts.extract_page(
+            first_page = self.__number,
+            last_page = self.__number,
+            output_file = f"{lock_dir}/{self.__number}.pdf",
+            gs_script = gs_watermark_script,
+            file_name = self.__file
+        )
+
+        text_length = len(text)
+        size = self.__character_size(text_length, self.__page_info)
+        rotate = math.atan( self.__page_info.YDimension / self.__page_info.XDimension )
+        starting_X = self.__min_dimension(self.__page_info, text_length) * math.sin(rotate) + (self.__page_info.XDimension - self.__text_box_width(text_length, self.__page_info, rotate)) * 0.5
+        starting_Y = (self.__page_info.YDimension - self.__text_box_height(text_length, self.__page_info, rotate) ) * 0.5
+        position = f"{starting_X} {starting_Y}"
+
+        rotate_degrees = math.degrees(rotate)
+        watermark = template.render(transparency=transparency, text=text, rotate=rotate_degrees, size=size, font=font, position=position)
+
+        with open(gs_watermark_script,'w') as file:
+            file.write(watermark)
+            file.close()
+
+        os.system(wm)
+        os.remove(gs_watermark_script)
+
+    def apply_watermark(self, lock_dir: str, template: Template, transparency: float = 0.5, text: str = "TOP SECRET", font: str = 'Helvetica-Bold') -> None:
         gs_watermark_script = "wm.ps"
 
         wm = scripts.extract_page(
