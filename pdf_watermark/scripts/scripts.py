@@ -1,4 +1,4 @@
-from pdf_watermark.constants.page import *
+from pdf_watermark.pdf_watermark_types.page import *
 
 
 def get_file_information(file_name: str) -> str:

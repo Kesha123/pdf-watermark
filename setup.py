@@ -13,8 +13,10 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url='https://github.com/Kesha123/pdf-watermark',
     license='MIT',
-    packages=['pdf_watermark', 'pdf_watermark.constants', 'pdf_watermark.templates', 'pdf_watermark.scripts'],
+    packages=['pdf_watermark', 'pdf_watermark.constants', 'pdf_watermark.templates', 'pdf_watermark.scripts', 'pdf_watermark.utils'],
     install_requires=[
-        "Jinja2==3.1.2"
+        "Jinja2==3.1.2",
+        "numpy==1.26.2",
+        "opencv-python==4.8.1.78"
     ]
 )

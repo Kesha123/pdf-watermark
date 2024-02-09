@@ -2,7 +2,7 @@ import os
 import math
 import pdf_watermark.scripts.scripts as scripts
 from jinja2 import Template
-from pdf_watermark.constants.page import PageInfo
+from pdf_watermark.pdf_watermark_types.page import PageInfo
 
 
 class Page:
@@ -82,3 +82,9 @@ class Page:
 
         os.system(wm)
         os.remove(gs_watermark_script)
+
+    def apply_image(lock_dir: str) -> None:
+        raise NotImplementedError()
+
+    def apply_ascii_image(lock_dir: str) -> None:
+        raise NotImplementedError

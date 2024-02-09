@@ -5,9 +5,9 @@
      {
          gsave
          translate
-         /{{ font }} findfont {{ size }} scalefont setfont
+         /{{ font }} findfont 10 scalefont setfont
          newpath
-         {{ transparency }} setgray {{ position }} moveto {{ rotate }} rotate
+         1 0 0 setrgbcolor 50 50 moveto 0 rotate
          ({{ text }}) false  charpath
          0 setlinewidth stroke
          grestore
